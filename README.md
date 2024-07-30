@@ -1,5 +1,8 @@
 # rja
 
+Rozkłady jazdy na sektorach.
+Dla sióstr w celach informacyjnych.
+
 ## Project setup
 ```
 npm install
