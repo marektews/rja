@@ -30,6 +30,7 @@ const props = defineProps({
     sector: { type: Object, required: true },
 })
 
+const date = new Date()
 const store = useStore()
 const rja = ref([])
 const Busses = computed(() => {
@@ -51,7 +52,7 @@ const Busses = computed(() => {
             name = `${ident} - ${zbor.name}`
 
         let item = { tura: elem.tura }
-        item.departure = elem.d1
+        item.departure = whichDeparture(elem)
         item.name = name
         res.push(item)
     })
@@ -88,5 +89,13 @@ function loadSectorBusses(sid) {
     .catch(reason => {
         console.error("load sector busses:", reason)
     })
+}
+
+function whichDeparture(item) {
+    switch(date.getDay()) {
+        case 6: return item.d2
+        case 0: return item.d3
+    }
+    return item.d1
 }
 </script>
