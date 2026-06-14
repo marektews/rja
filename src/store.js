@@ -3,6 +3,8 @@ import { createStore } from 'vuex'
 const store = createStore({
     state() {
         return {
+            active_tura: 1,
+            mode: 0,
             terminals: [],
             sectors: [],
             congregations: [],
@@ -10,6 +12,12 @@ const store = createStore({
         }
     },
     mutations: {
+        setActiveTura(state, payload) {
+            state.active_tura = payload
+        },
+        setMode(state, payload) {
+            state.mode = payload
+        },
         setTerminals(state, payload) {
             state.terminals = payload
         },
@@ -24,12 +32,28 @@ const store = createStore({
         }
     },
     actions: {
-        loadCongregations(context) {
-            fetch("/api/rja/zbory", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ tura: store.getters.tura })
+        loadActiveTura(context) {
+            fetch(`/api/config/active/tura`)
+            .then(resp => {
+                if(resp.status === 200)
+                    return resp.json()
+                else
+                    throw resp
             })
+            .then((data) => {
+                console.log("load active tura:", data)
+                context.commit('setActiveTura', data)
+                context.dispatch('loadCongregations')
+                context.dispatch('loadSRA')
+                context.dispatch('loadTerminals')
+            })
+            .catch((reason) => {
+                console.error("load active tura:", reason)
+            })
+        },
+
+        loadCongregations(context) {
+            fetch(`/api/rja/zbory/${context.state.active_tura.tid}`)
             .then(resp => {
                 if(resp.status === 200)
                     return resp.json()
@@ -46,11 +70,7 @@ const store = createStore({
         },
 
         loadSRA(context) {
-            fetch("/api/rja/sra", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ tura: store.getters.tura })
-            })
+            fetch(`/api/rja/sra/${context.state.active_tura.tid}`)
             .then(resp => {
                 if(resp.status === 200)
                     return resp.json()
@@ -65,19 +85,51 @@ const store = createStore({
                 console.error("load sra:", reason)
             })
         },
+
+        loadSectors(context, terminal_id) {
+            fetch(`/api/rja/sectors/${terminal_id}`)
+            .then(resp => {
+                if(resp.status === 200)
+                    return resp.json()
+                else
+                    throw resp
+            })
+            .then(data => {
+                console.log("Load sectors:", data)
+                context.commit('setSectors', data)
+                context.commit('setMode', 2)
+            })
+            .catch((reason) => {
+                console.error("Load sectors:", reason)
+            })
+        },
+
+        loadTerminals(context) {
+            fetch("/api/rja/terminals")
+            .then((resp) => {
+                if(resp.status === 200)
+                    return resp.json()
+                else
+                    throw resp
+            })
+            .then((data) => {
+                console.log("Load terminals:", data)
+                context.commit('setTerminals', data)
+                if(data.length > 1) {
+                    context.commit('setMode', 1)
+                }
+                else
+                if(data.length === 1) {
+                    // gdy jest tylko jeden terminal, to od razu ładujemy sektory
+                    context.dispatch('loadSectors', data[0].tid)
+                }
+            })
+            .catch((reason) => {
+                console.error("Load terminals:", reason)
+            })
+        }
     },
     getters: {
-        tura() {
-            const dtNow = new Date()
-            const dtBorder = new Date(2024, 7, 5)
-            let tura = 1
-            if(dtNow < dtBorder)
-                tura = 2
-            else
-                tura = 3
-            // console.log("tura:", dtNow, dtBorder, tura)
-            return tura
-        },
         day() {
             const dtNow = new Date()
             let d = 'd1'

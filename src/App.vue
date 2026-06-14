@@ -5,8 +5,8 @@
             Rozkłady jazdy autokarów
         </h4>
 
-        <TerminalsView v-if="mode === 1" />
-        <RozkladyView v-else-if="mode === 2" />
+        <TerminalsView v-if="store.state.mode === 1" />
+        <RozkladyView v-else-if="store.state.mode === 2" />
     </div>
 </template>
 
@@ -19,54 +19,10 @@ import RozkladyView from './RozkladyView.vue';
 import TerminalsView from './TerminalsView.vue';
 
 const store = useStore()
-const mode = ref(0)
 
 onBeforeMount(() => {
-    store.dispatch('loadCongregations')
-    store.dispatch('loadSRA')
-    loadTerminals()
+    store.dispatch('loadActiveTura')
 })
-
-function loadTerminals() {
-    fetch("/api/rja/terminals")
-    .then((resp) => {
-        if(resp.status === 200)
-            return resp.json()
-        else
-            throw resp
-    })
-    .then((data) => {
-        console.log("Load terminals:", data)
-        store.commit('setTerminals', data)
-        if(data.length > 1)
-            mode.value = 1
-        else
-        if(data.length === 1) {
-            loadSectors(data[0].tid)
-        }
-    })
-    .catch((reason) => {
-        console.error("Load terminals:", reason)
-    })
-}
-
-function loadSectors(tid) {
-    fetch(`/api/rja/sectors/${tid}`)
-    .then(resp => {
-        if(resp.status === 200)
-            return resp.json()
-        else
-            throw resp
-    })
-    .then(data => {
-        console.log("Load sectors:", data)
-        store.commit('setSectors', data)
-        mode.value = 2
-    })
-    .catch((reason) => {
-        console.error("Load sectors:", reason)
-    })
-}
 
 </script>
 
