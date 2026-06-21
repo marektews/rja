@@ -48,11 +48,9 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useStore } from 'vuex'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons'
 
-const store = useStore()
 const props = defineProps({
     congregation: { type: Object, required: true },
 })
@@ -61,11 +59,9 @@ const rja_data = ref(undefined)
 
 watch(() => props.congregation, async (nv) => {
     rja_data.value = undefined
+    if(!nv || !nv.id) return
 
-    const zbor = store.state.congregations.find((elem) => elem.name === nv.name)
-    console.log("zbor:", zbor)
-    
-    const resp = await fetch(`/api/rja/zbor/${zbor.id}`)
+    const resp = await fetch(`/api/rja/zbor/${nv.id}`)
     if(resp.status === 200) {
         const data = await resp.json()
         console.log("Load congregation rja:", data)

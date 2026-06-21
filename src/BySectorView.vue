@@ -16,7 +16,7 @@
                         class="btn btn-primary" 
                         :for="`btnradio${idx}`"
                     >
-                        &nbsp;{{ sector.name.split(' ')[1] }}&nbsp;
+                        &nbsp;{{ sector.name }}&nbsp;
                     </label>
                 </template>
             </div>
@@ -36,11 +36,3 @@ const store = useStore()
 const current_sector = ref(undefined)
 
 </script>
-
-<style lang="scss" scoped>
-.my-grid {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 2pt 9pt;
-}
-</style>
